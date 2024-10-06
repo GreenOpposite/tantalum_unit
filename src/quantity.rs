@@ -218,40 +218,48 @@ impl Neg for Quantity {
 }
 
 impl Add for Quantity {
-    type Output = Result<Quantity, ()>;
+    type Output = Quantity;
 
     fn add(self, mut rhs: Self) -> Self::Output {
-        rhs = rhs.convert_to(self.unit.clone())?;
+        let self_unit_symbol = self.unit.symbol();
+        let rhs_unit_symbol = rhs.unit.symbol();
 
-        Ok(Self {
+        rhs = rhs.convert_to(self.unit.clone())
+            .expect(format!("Cannot convert {rhs_unit_symbol} to {self_unit_symbol}.").as_str());
+
+        Self {
             magnitude: self.magnitude + rhs.magnitude,
             unit: self.unit,
-        })
+        }
     }
 }
 
 impl AddAssign for Quantity {
     fn add_assign(&mut self, rhs: Self) {
-        *self = (self.clone() + rhs).unwrap();
+        *self = (self.clone() + rhs);
     }
 }
 
 impl Sub for Quantity {
-    type Output = Result<Quantity, ()>;
+    type Output = Quantity;
 
     fn sub(self, mut rhs: Self) -> Self::Output {
-        rhs = rhs.convert_to(self.unit.clone())?;
+        let self_unit_symbol = self.unit.symbol();
+        let rhs_unit_symbol = rhs.unit.symbol();
 
-        Ok(Self {
+        rhs = rhs.convert_to(self.unit.clone())
+            .expect(format!("Cannot convert {rhs_unit_symbol} to {self_unit_symbol}.").as_str());
+
+        Self {
             magnitude: self.magnitude - rhs.magnitude,
             unit: self.unit,
-        })
+        }
     }
 }
 
 impl SubAssign for Quantity {
     fn sub_assign(&mut self, rhs: Self) {
-        *self = (self.clone() - rhs).unwrap();
+        *self = (self.clone() - rhs);
     }
 }
 
@@ -310,36 +318,43 @@ mod tests {
     fn add_int() {
         let a = q!(int!(8342), Gallon);
         let b = q!(int!(743), Gallon);
-        let result = (a + b).unwrap();
+        let result = a + b;
         eq!(result, int!(9085), Gallon);
 
         let a = q!(int!(8342), Gallon);
         let b = q!(int!(743), Liter);
-        let result = (a + b).unwrap();
+        let result = a + b;
         eq!(result, ratio!(4040113137766i64, 473176473i64), Gallon);
+    }
 
+    #[test]
+    #[should_panic]
+    fn invalid_add() {
         let a = q!(int!(8342), Gallon);
         let b = q!(int!(743), Joule / Candela);
+
         let result = a + b;
-        assert!(result.is_err());
     }
 
     #[test]
     fn sub_int() {
         let a = q!(int!(8342), Gallon);
         let b = q!(int!(743), Gallon);
-        let result = (a - b).unwrap();
+        let result = a - b;
         eq!(result, int!(7599), Gallon);
 
         let a = q!(int!(8342), Gallon);
         let b = q!(int!(743), Liter);
-        let result = (a - b).unwrap();
+        let result = a - b;
         eq!(result, ratio!(3854363137766i64, 473176473i64), Gallon);
+    }
 
+    #[test]
+    #[should_panic]
+    fn invalid_sub() {
         let a = q!(int!(8342), Gallon);
         let b = q!(int!(743), Joule / Candela);
         let result = a - b;
-        assert!(result.is_err());
     }
 
     #[test]
