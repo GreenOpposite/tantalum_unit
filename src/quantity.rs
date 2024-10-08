@@ -195,6 +195,23 @@ impl MulAssign for Quantity {
     }
 }
 
+impl Mul<BigRational> for Quantity {
+    type Output = Quantity;
+
+    fn mul(self, rhs: BigRational) -> Self::Output {
+        Self {
+            unit: self.unit,
+            magnitude: self.magnitude * rhs,
+        }
+    }
+}
+
+impl MulAssign<BigRational> for Quantity {
+    fn mul_assign(&mut self, rhs: BigRational) {
+        *self = self.clone() * rhs;
+    }
+}
+
 impl Div for Quantity {
     type Output = Quantity;
 
@@ -210,6 +227,21 @@ impl DivAssign for Quantity {
     fn div_assign(&mut self, rhs: Self) {
         *self = self.clone() / rhs;
     }
+}
+
+impl Div<BigRational> for Quantity {
+    type Output = Quantity;
+
+    fn div(self, rhs: BigRational) -> Self::Output {
+        Self {
+            unit: self.unit,
+            magnitude: self.magnitude / rhs,
+        }
+    }
+}
+
+impl DivAssign<BigRational> for Quantity {
+    fn div_assign(&mut self, rhs: BigRational) { *self = self.clone() / rhs; }
 }
 
 impl Neg for Quantity {

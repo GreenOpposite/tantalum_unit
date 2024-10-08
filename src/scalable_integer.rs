@@ -149,21 +149,21 @@ impl Sub for &ScalableInteger {
 
 impl Zero for ScalableInteger {
     fn zero() -> Self {
-        Self::Single(0)
+        Single(0)
     }
 
     fn is_zero(&self) -> bool {
         match self {
-            ScalableInteger::Single(n) => { n.is_zero() }
-            ScalableInteger::Double(n) => { n.is_zero() }
-            ScalableInteger::Big(n) => { n.is_zero() }
+            Single(n) => { n.is_zero() }
+            Double(n) => { n.is_zero() }
+            Big(n) => { n.is_zero() }
         }
     }
 }
 
 impl One for ScalableInteger {
     fn one() -> Self {
-        Self::Single(1)
+        Single(1)
     }
 }
 
