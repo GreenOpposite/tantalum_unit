@@ -2,11 +2,12 @@
 
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-use num::{BigRational, FromPrimitive, One};
+use num::{FromPrimitive, One};
+use crate::scalable_integer::BigRational;
 use crate::unit::{Unit, UNITLESS};
 
 /// An arbitrary precision value with a ```Unit```.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct Quantity {
     pub magnitude: BigRational,
     pub unit: Unit,
@@ -35,12 +36,16 @@ impl Quantity {
     }
 
     pub fn from_f64(value: f64) -> Self {
-        let ratio = BigRational::from_f64(value).unwrap();
+        let ratio = num::BigRational::from_f64(value).unwrap();
+        let ratio = BigRational::new_raw(ratio.numer().clone().into(),
+                                         ratio.denom().clone().into());
         Self::from_rational(ratio)
     }
 
     pub fn from_f64_with_unit(value: f64, unit: Unit) -> Self {
-        let ratio = BigRational::from_f64(value).unwrap();
+        let ratio = num::BigRational::from_f64(value).unwrap();
+        let ratio = BigRational::new_raw(ratio.numer().clone().into(),
+                                         ratio.denom().clone().into());
         Self::from_rational_with_unit(ratio, unit)
     }
 
@@ -69,6 +74,7 @@ impl Quantity {
     /// # use tantalum_unit::quantity::Quantity;
     /// # use tantalum_unit::ratio;
     /// # use tantalum_unit::unit::Unit;
+    /// use tantalum_unit::scalable_integer::BigRational;
     /// use tantalum_unit::unit::Unit::*;
     ///
     /// let temperature = Quantity::from_i64_with_unit(0, Celsius); // 0°C
@@ -236,7 +242,7 @@ impl Add for Quantity {
 
 impl AddAssign for Quantity {
     fn add_assign(&mut self, rhs: Self) {
-        *self = (self.clone() + rhs);
+        *self = self.clone() + rhs;
     }
 }
 
@@ -259,14 +265,25 @@ impl Sub for Quantity {
 
 impl SubAssign for Quantity {
     fn sub_assign(&mut self, rhs: Self) {
-        *self = (self.clone() - rhs);
+        *self = self.clone() - rhs;
     }
 }
+
+impl PartialEq for Quantity {
+    fn eq(&self, other: &Self) -> bool {
+        self.unit == other.unit
+            && self.magnitude.denom() == other.magnitude.denom()
+            && self.magnitude.numer() == other.magnitude.numer()
+    }
+}
+
+impl Eq for Quantity {}
 
 #[cfg(test)]
 mod tests {
     use crate::{int, ratio};
     use crate::unit::Unit::*;
+    use crate::scalable_integer::BigRational;
     use super::*;
 
     macro_rules! eq {
@@ -333,7 +350,7 @@ mod tests {
         let a = q!(int!(8342), Gallon);
         let b = q!(int!(743), Joule / Candela);
 
-        let result = a + b;
+        let _result = a + b;
     }
 
     #[test]
@@ -354,7 +371,7 @@ mod tests {
     fn invalid_sub() {
         let a = q!(int!(8342), Gallon);
         let b = q!(int!(743), Joule / Candela);
-        let result = a - b;
+        let _result = a - b;
     }
 
     #[test]

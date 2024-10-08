@@ -16,13 +16,13 @@ fn div(i: i64) -> Quantity {
     a / b
 }
 
-fn add(i: i64) -> Result<Quantity, ()> {
+fn add(i: i64) -> Quantity {
     let a = Quantity::from_i64_with_unit(15 * i, Joule);
     let b = Quantity::from_i64_with_unit(i + 1, Joule);
     a + b
 }
 
-fn sub(i: i64) -> Result<Quantity, ()> {
+fn sub(i: i64) -> Quantity {
     let a = Quantity::from_i64_with_unit(15 * i, Joule);
     let b = Quantity::from_i64_with_unit(i + 1, Joule);
     a - b

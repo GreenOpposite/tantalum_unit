@@ -2,9 +2,10 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Div, DivAssign, Mul, MulAssign};
 use indexmap::IndexMap;
-use num::{BigRational, One, Zero};
+use num::{Zero, One};
 use crate::unit::Unit::*;
 use crate::{c, one, ratio, zero};
+use crate::scalable_integer::{BigRational};
 
 /// A Unit that represents a dimensionless value.
 pub const UNITLESS: Unit = Compound(vec![], vec![]);
@@ -187,6 +188,8 @@ impl Unit {
     /// ```
     pub fn to_si_units(mut self) -> (BigRational, BigRational, Unit) {
         use Unit::*;
+        use crate::scalable_integer::BigRational;
+
         self = self.flatten();
         match self
         {
@@ -329,7 +332,7 @@ impl Unit {
                     let (n_offset, n_slope, n_unit) = u.to_si_units();
                     offset += n_offset;
                     // Multiply by the new slope without reducing the fraction
-                    slope = BigRational::new_raw(slope.numer() * n_slope.numer(), slope.denom() * n_slope.denom());
+                    slope = BigRational::new_raw(slope.numer().clone() * n_slope.numer().clone(), slope.denom().clone() * n_slope.denom().clone());
                     new_numerator.push(n_unit);
                 }
 

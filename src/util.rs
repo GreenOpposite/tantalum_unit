@@ -4,14 +4,14 @@
 ///
 /// # Example:
 /// ```
-/// # use num::BigRational;
 /// # use tantalum_unit::ratio;
+/// # use tantalum_unit::scalable_integer::BigRational;
 /// let value: BigRational = ratio!(17, 3); // For the fraction 17/3
 /// ```
 #[macro_export]
 macro_rules! ratio {
     ($a:expr, $b:expr) => {
-        num::BigRational::new($a.into(), $b.into())
+        BigRational::new($a.into(), $b.into())
     };
 }
 
@@ -19,7 +19,7 @@ macro_rules! ratio {
 #[macro_export]
 macro_rules! zero {
     () => {
-        num::BigRational::zero()
+        BigRational::zero()
     };
 }
 
@@ -27,7 +27,7 @@ macro_rules! zero {
 #[macro_export]
 macro_rules! one {
     () => {
-        num::BigRational::one()
+        BigRational::one()
     };
 }
 
@@ -65,14 +65,14 @@ macro_rules! c {
 ///
 /// # Example:
 /// ```
-/// # use num::BigRational;
+/// # use tantalum_unit::scalable_integer::BigRational;
 /// # use tantalum_unit::int;
 /// let eight: BigRational = int!(8);
 /// ```
 #[macro_export]
 macro_rules! int {
     ($value:expr) => {
-        num::BigRational::from_integer($value.into())
+        BigRational::from_integer($value.into())
     };
 }
 
