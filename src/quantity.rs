@@ -3,7 +3,8 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use num::{FromPrimitive, One, ToPrimitive};
-use crate::one;
+use num::traits::Inv;
+use crate::{one};
 use crate::scalable_integer::BigRational;
 use crate::unit::{Unit, UNITLESS};
 
@@ -179,15 +180,26 @@ impl Quantity {
     /// ```
     pub fn convert_to(self, to: Unit) -> Result<Self, ()> {
         let (offset, slope, unit) = self.unit.to_si_units();
-        let (offset_to, slope_to, unit_to) = to.clone().to_si_units();
+        let (offset_to, slope_to, mut unit_to) = to.clone().to_si_units();
+
+        let mut take_reciprocal = false;
         if unit != unit_to {
-            return Err(());
+            // Try the reciprocal
+            unit_to = UNITLESS / unit_to;
+            if unit != unit_to {
+                return Err(());
+            } else {
+                take_reciprocal = true;
+            }
         }
+
         let mut new_magnitude = self.magnitude;
         new_magnitude += offset;
         new_magnitude *= slope;
         new_magnitude /= slope_to;
         new_magnitude -= offset_to;
+        if take_reciprocal { new_magnitude = new_magnitude.inv(); }
+
         Ok(Self {
             unit: to,
             magnitude: new_magnitude,
@@ -558,5 +570,9 @@ mod tests {
         let a = q!(int!(3800), Joule / Second);
         let result = a.convert_to((Newton * Meter) / Second).unwrap();
         eq!(result, int!(3800), (Newton * Meter) / Second);
+
+        let a = q!(int!(20), Ohm);
+        let result = a.convert_to(Siemens).unwrap();
+        eq!(result, ratio!(1, 20), Siemens);
     }
 }
