@@ -2,7 +2,8 @@
 
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-use num::{FromPrimitive, One};
+use num::{FromPrimitive, One, ToPrimitive};
+use crate::one;
 use crate::scalable_integer::BigRational;
 use crate::unit::{Unit, UNITLESS};
 
@@ -136,6 +137,32 @@ impl Quantity {
         }
     }
 
+    pub fn normalize_modifier(mut self) -> Self {
+        use Unit::*;
+
+        self = self.apply_modifiers();
+        let modifiers = [UNITLESS, Quecto, Ronto, Yocto, Zepto, Atto, Femto, Pico, Nano, Micro, Milli, Centi, Deci, Kilo, Mega, Giga, Tera, Peta, Exa, Zetta, Yotta, Ronna, Quetta];
+
+        let mut candidate = UNITLESS;
+
+        for modifier in modifiers {
+            let (_, multiplier, _) = modifier.clone().to_si_units();
+            candidate = modifier;
+            if Quantity::is_in_normalized_range(self.magnitude.clone() / multiplier) {
+                break;
+            }
+        }
+
+        Self {
+            unit: candidate.clone() * self.unit,
+            magnitude: self.magnitude / candidate.to_si_units().1,
+        }
+    }
+
+    fn is_in_normalized_range(value: BigRational) -> bool {
+        value >= one!() && value < BigRational::from_integer(1_000.into())
+    }
+
     /// Converts the Quantity to an arbitrary Unit. Returns an Error if that is not possible.
     ///
     /// # Example:
@@ -170,11 +197,18 @@ impl Quantity {
     pub fn is_unitless(&self) -> bool {
         self.unit.is_unitless()
     }
+
+    pub fn display_exact(&self) -> String {
+        format!("{}{}", self.magnitude, self.unit)
+    }
 }
 
 impl Display for Quantity {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}{}", self.magnitude, self.unit)
+        let ratio = num::BigRational::new(self.magnitude.numer().clone().to_big_int(),
+                                          self.magnitude.denom().clone().to_big_int());
+        let float = (ratio.to_f64().unwrap() * 1000.0).round() / 1000.0;
+        write!(f, "{}{}", float, self.unit)
     }
 }
 

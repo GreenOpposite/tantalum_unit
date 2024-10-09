@@ -4,352 +4,144 @@ use std::ops::{Div, DivAssign, Mul, MulAssign};
 use indexmap::IndexMap;
 use num::{Zero, One};
 use crate::unit::Unit::*;
-use crate::{c, one, ratio, zero};
+use crate::{define_units, int, one, ratio, zero};
 use crate::scalable_integer::{BigRational};
 
 /// A Unit that represents a dimensionless value.
 pub const UNITLESS: Unit = Compound(vec![], vec![]);
 
-/// A Unit of measurement.
-///
-/// # Example:
-/// ```
-/// # use tantalum_unit::c;
-/// # use tantalum_unit::unit::Unit;
-/// // Simple units
-/// let meter = Unit::Meter;
-/// let year = Unit::Year;
-///
-/// // More complex units can be created using Unit::Compound
-/// let joule_per_second = Unit::Compound(vec![Unit::Joule], vec![Unit::Second]);
-/// let kilo_meter = Unit::Compound(vec![Unit::Kilo, Unit::Meter], vec![]);
-///
-/// // Or by multiplying/dividing units
-/// use tantalum_unit::unit::Unit::*;
-///
-/// let joule_per_second = Joule / Second;
-/// let kilo_meter = Kilo * Meter;
-/// ```
-#[derive(Clone, Debug, PartialEq, Hash, Eq)]
-pub enum Unit {
+
+define_units!(
     // Force
-    Newton,
+    Newton, "newton", "N", zero!(), one!(), (Kilo * Gram * Meter) / (Second * Second);
 
     // Energy
-    Joule,
+    Joule, "joule", "J",zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second);
 
     // Electric resistance
-    Ohm,
+    Ohm, "ohm", "Ω",zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Second * Ampere * Ampere);
 
     // Frequency
-    Hertz,
+    Hertz, "herzt", "Hz", zero!(), one!(), UNITLESS / Second;
 
     // Voltage
-    Volt,
+    Volt, "volt", "V", zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Second * Ampere);
 
     // Temperature
-    Kelvin,
-    Celsius,
-    Fahrenheit,
+    Kelvin, "kelvin", "K", zero!(), one!(), Kelvin;
+    Celsius, "celsius", "°C", ratio!(5463, 20), one!(), Kelvin;
+    Fahrenheit, "fahrenheit", "°F", ratio!(45967, 100), ratio!(13889, 25000), Kelvin;
 
     // Area
-    Hectare,
+    Hectare, "hectare", "ha", zero!(), int!(10000), Meter * Meter;
 
     // Magnetic field strength
-    Tesla,
+    Tesla, "tesla", "T", zero!(), one!(), (Kilo * Gram) / (Second * Second * Ampere);
 
     // Information
-    Bit,
-    Byte,
+    Bit, "bit", "b", zero!(), one!(), Bit;
+    Byte, "byte", "B", zero!(), int!(8), Bit;
 
     // Electric conductance
-    Siemens,
+    Siemens, "siemens", "S", zero!(), one!(), (Second * Second * Second * Ampere * Ampere) / (Kilo * Gram * Meter * Meter);
 
     // Power
-    Watt,
+    Watt, "watt", "W", zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Second);
 
     // Volume
-    Liter,
-    CubicInch,
-    CubicFeet,
-    CubicYard,
-    Pint,
-    Quart,
-    Gallon,
+    Liter, "liter", "L", zero!(), ratio!(1, 1000), Meter * Meter * Meter;
+    CubicInch, "cubic inch", "in^3", zero!(), ratio!(2048383, 125000000000i64), Meter * Meter * Meter;
+    CubicFeet, "cubic feet", "ft^3", zero!(), ratio!(55306341, 1953125000), Meter * Meter * Meter;
+    CubicYard, "cubic yard", "yd^3", zero!(), ratio!(1493271207, 1953125000), Meter * Meter * Meter;
+    Pint, "pint", "pt", zero!(), ratio!(473176473, 1000000000000i64), Meter * Meter * Meter;
+    Quart, "quart", "qt", zero!(), ratio!(473176473, 500000000000i64), Meter * Meter * Meter;
+    Gallon, "gallon", "gal", zero!(), ratio!(473176473, 125000000000i64), Meter * Meter * Meter;
 
     // Pressure
-    Pascal,
+    Pascal, "pascal", "Pa", zero!(), one!(), (Kilo * Gram) / (Meter * Second * Second);
 
     // Inductance
-    Henry,
-
-    // SI modifiers
-    Quecto,
-    Ronto,
-    Yocto,
-    Zepto,
-    Atto,
-    Femto,
-    Pico,
-    Nano,
-    Micro,
-    Milli,
-    Centi,
-    Deci,
-    Hecto,
-    Kilo,
-    Mega,
-    Giga,
-    Tera,
-    Peta,
-    Exa,
-    Zetta,
-    Yotta,
-    Ronna,
-    Quetta,
+    Henry, "henry", "H", zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Ampere * Ampere);
 
     // Amount of substance
-    Mole,
+    Mole, "mole", "mol", zero!(), one!(), Mole;
 
     // Luminous intensity
-    Candela,
+    Candela, "candela", "cd", zero!(), one!(), Candela;
 
     // Electric current
-    Ampere,
+    Ampere, "ampere", "A", zero!(), one!(), Ampere;
 
     // Magnetic flux
-    Weber,
-
-    // Binary modifiers
-    Kibi,
-    Mebi,
-    Gibi,
-    Tebi,
-    Pebi,
-    Exbi,
+    Weber, "weber", "Wb", zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Ampere);
 
     // Length
-    Meter,
-    AU,
-    Inch,
-    Feet,
-    Yard,
-    Mile,
-    NauticalMile,
-    LightYear,
-    Parsec,
+    Meter, "meter", "m", zero!(), one!(), Meter;
+    AU, "astronomical unit", "AU", zero!(), ratio!(149597870691i64, 1), Meter;
+    Inch, "inch", "in", zero!(), ratio!(127, 5000), Meter;
+    Feet, "feet", "ft", zero!(), ratio!(381, 1250), Meter;
+    Yard, "yard", "yd", zero!(), ratio!(1143, 1250), Meter;
+    Mile, "mile", "mi", zero!(), ratio!(201168, 125), Meter;
+    NauticalMile, "nautical mile", "nmi", zero!(), ratio!(1852, 1), Meter;
+    LightYear, "light year", "ly", zero!(), ratio!(9460730472580800i64, 1), Meter;
+    Parsec, "parsec", "pc", zero!(), ratio!(30857000000000000i64, 1), Meter;
 
-    // Electric charge
-    Coulomb,
+    // Electric Charge
+    Coulomb, "coulomb", "C", zero!(), one!(), Second * Ampere;
 
     // Mass
-    Gram,
-    Tonne,
-    Dram,
-    Ounce,
-    Pound,
+    Gram, "gram", "g", zero!(), one!(), Gram;
+    Tonne, "tonne", "t", zero!(), ratio!(1000000, 1), Gram;
+    Dram, "dram", "dr", zero!(), ratio!(17718451953i64, 10_000_000_000i64), Gram;
+    Ounce, "ounce", "oz", zero!(), ratio!(45_359_237i64, 1_600_000i64), Gram;
+    Pound, "pound", "lb", zero!(), ratio!(45359237, 100_000), Gram;
 
     // Electric capacitance
-    Farad,
+    Farad, "farad", "F", zero!(), one!(), (Second * Second * Second * Second * Ampere * Ampere) / (Kilo * Gram * Meter * Meter);
 
     // Time
-    Second,
-    Minute,
-    Hour,
-    Day,
-    Month,
-    Year,
+    Second, "second", "s", zero!(), one!(), Second;
+    Minute, "minute", "min", zero!(), ratio!(60, 1), Second;
+    Hour, "hour", "h", zero!(), ratio!(3600, 1), Second;
+    Day, "day", "d", zero!(), ratio!(86400, 1), Second;
+    Month, "month", "mo", zero!(), ratio!(2629746, 1), Second;
+    Year, "year", "yr", zero!(), ratio!(31557600, 1), Second;
 
-    // Compound
-    /// Represents a Unit as a fraction in the form
-    /// ```
-    /// # use tantalum_unit::unit::Unit::Compound;
-    /// # let (numerator, denominator) = (vec![], vec![]);
-    /// Compound(numerator, denominator);
-    /// ```
-    Compound(Vec<Unit>, Vec<Unit>),
-}
+    // SI modifiers
+    Quecto, "quecto", "q", zero!(), ratio!(1, 1_000_000_000_000_000_000_000_000_000_000i128), UNITLESS;
+    Ronto, "ronto", "r", zero!(), ratio!(1, 1_000_000_000_000_000_000_000_000_000i128), UNITLESS;
+    Yocto, "yocto", "y", zero!(), ratio!(1, 1_000_000_000_000_000_000_000_000i128), UNITLESS;
+    Zepto, "zepto", "z", zero!(), ratio!(1, 1_000_000_000_000_000_000_000i128), UNITLESS;
+    Atto, "atto", "a", zero!(), ratio!(1, 1_000_000_000_000_000_000i128), UNITLESS;
+    Femto, "femto", "f", zero!(), ratio!(1, 1_000_000_000_000_000i64), UNITLESS;
+    Pico, "pico", "p", zero!(), ratio!(1, 1_000_000_000_000i64), UNITLESS;
+    Nano, "nano", "n", zero!(), ratio!(1, 1_000_000_000), UNITLESS;
+    Micro, "micro", "µ", zero!(), ratio!(1, 1_000_000), UNITLESS;
+    Milli, "milli", "m", zero!(), ratio!(1, 1_000), UNITLESS;
+    Centi, "centi", "c", zero!(), ratio!(1, 100), UNITLESS;
+    Deci, "deci", "d", zero!(), ratio!(1, 10), UNITLESS;
+    Hecto, "hecto", "h", zero!(), ratio!(100, 1), UNITLESS;
+    Kilo, "kilo", "k", zero!(), ratio!(1_000, 1), UNITLESS;
+    Mega, "mega", "M", zero!(), ratio!(1_000_000, 1), UNITLESS;
+    Giga, "giga", "G", zero!(), ratio!(1_000_000_000, 1), UNITLESS;
+    Tera, "tera", "T", zero!(), ratio!(1_000_000_000_000i64, 1), UNITLESS;
+    Peta, "peta", "P", zero!(), ratio!(1_000_000_000_000_000i64, 1), UNITLESS;
+    Exa, "exa", "E", zero!(), ratio!(1_000_000_000_000_000_000i128, 1), UNITLESS;
+    Zetta, "zetta", "Z", zero!(), ratio!(1_000_000_000_000_000_000_000i128, 1), UNITLESS;
+    Yotta, "yotta", "Y", zero!(), ratio!(1_000_000_000_000_000_000_000_000i128, 1), UNITLESS;
+    Ronna, "ronna", "R", zero!(), ratio!(1_000_000_000_000_000_000_000_000_000i128, 1), UNITLESS;
+    Quetta, "quetta", "Q", zero!(), ratio!(1_000_000_000_000_000_000_000_000_000_000i128, 1), UNITLESS;
+
+    // IEC binary modifiers
+    Kibi, "kibi", "Ki", zero!(), ratio!(1024, 1), UNITLESS;
+    Mebi, "mebi", "Mi", zero!(), ratio!(1048576, 1), UNITLESS;
+    Gibi, "gibi", "Gi", zero!(), ratio!(1073741824, 1), UNITLESS;
+    Tebi, "tebi", "Ti", zero!(), ratio!(1099511627776i64, 1), UNITLESS;
+    Pebi, "pebi", "Pi", zero!(), ratio!(1125899906842624i64, 1), UNITLESS;
+    Exbi, "exbi", "Ei", zero!(), ratio!(1152921504606846976i64, 1), UNITLESS
+);
 
 impl Unit {
-    /// Converts a Unit to its SI representation, removing prefixes and returning offset and slope.
-    ///
-    /// # Returns:
-    /// ```
-    /// # let (offset, slope, unit) = (0,0,0);
-    /// (offset, slope, unit);
-    /// ```
-    ///
-    /// # Example:
-    /// ```
-    /// # use tantalum_unit::unit::Unit;
-    /// let temperature = Unit::Celsius;
-    /// let (offset, slope, unit) = temperature.to_si_units();
-    /// // Returns (273.15, 1.0, Unit::Kelvin) because Celsius is defined as C = K + 273.15
-    /// ```
-    pub fn to_si_units(mut self) -> (BigRational, BigRational, Unit) {
-        use Unit::*;
-        use crate::scalable_integer::BigRational;
-
-        self = self.flatten();
-        match self
-        {
-            // Force
-            Newton => (zero!(), one!(), (Kilo * Gram * Meter) / (Second * Second)),
-
-            // Energy
-            Joule => (zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second)),
-
-            // Electric resistance
-            Ohm => (zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Second * Ampere * Ampere)),
-
-            // Frequency
-            Hertz => (zero!(), one!(), UNITLESS / Second),
-
-            // Voltage
-            Volt => (zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Second * Ampere)),
-
-            // Temperature
-            Kelvin => (zero!(), one!(), Kelvin),
-            Celsius => (ratio!(5463, 20), one!(), Kelvin),
-            Fahrenheit => (ratio!(45967, 100), ratio!(13889, 25000), Kelvin),
-
-            // Area
-            Hectare => (zero!(), ratio!(10000, 1), Meter * Meter),
-
-            // Magnetic field strength
-            Tesla => (zero!(), one!(), (Kilo * Gram) / (Second * Second * Ampere)),
-
-            // Information
-            Bit => (zero!(), one!(), Bit),
-            Byte => (zero!(), ratio!(8, 1), Bit),
-
-            // Electric conductance
-            Siemens => (zero!(), one!(), (Second * Second * Second * Ampere * Ampere) / (Kilo * Gram * Meter * Meter)),
-
-            // Power
-            Watt => (zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Second)),
-
-            // Volume
-            Liter => (zero!(), ratio!(1, 1000), Meter * Meter * Meter),
-            CubicInch => (zero!(), ratio!(2048383, 125000000000i64), Meter * Meter * Meter),
-            CubicFeet => (zero!(), ratio!(55306341, 1953125000), Meter * Meter * Meter),
-            CubicYard => (zero!(), ratio!(1493271207, 1953125000), Meter * Meter * Meter),
-            Pint => (zero!(), ratio!(473176473, 1000000000000i64), Meter * Meter * Meter),
-            Quart => (zero!(), ratio!(473176473, 500000000000i64), Meter * Meter * Meter),
-            Gallon => (zero!(), ratio!(473176473, 125000000000i64), Meter * Meter * Meter),
-
-            // Pressure
-            Pascal => (zero!(), one!(), (Kilo * Gram) / (Meter * Second * Second)),
-
-            // Inductance
-            Henry => (zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Ampere * Ampere)),
-
-            // Amount of substance
-            Mole => (zero!(), one!(), Mole),
-
-            // Luminous intensity
-            Candela => (zero!(), one!(), Candela),
-
-            // Electric current
-            Ampere => (zero!(), one!(), Ampere),
-
-            // Magnetic flux
-            Weber => (zero!(), one!(), (Kilo * Gram * Meter * Meter) / (Second * Second * Ampere)),
-
-            // Length
-            Meter => (zero!(), one!(), Meter),
-            AU => (zero!(), ratio!(149597870691i64, 1), Meter),
-            Inch => (zero!(), ratio!(127, 5000), Meter),
-            Feet => (zero!(), ratio!(381, 1250), Meter),
-            Yard => (zero!(), ratio!(1143, 1250), Meter),
-            Mile => (zero!(), ratio!(201168, 125), Meter),
-            NauticalMile => (zero!(), ratio!(1852, 1), Meter),
-            LightYear => (zero!(), ratio!(9460730472580800i64, 1), Meter),
-            Parsec => (zero!(), ratio!(30857000000000000i64, 1), Meter),
-
-            // Electric Charge
-            Coulomb => (zero!(), one!(), Second * Ampere),
-
-            // Mass
-            Gram => (zero!(), one!(), Gram),
-            Tonne => (zero!(), ratio!(1000000, 1), Gram),
-            Dram => (zero!(), ratio!(17718451953i64, 10_000_000_000i64), Gram),
-            Ounce => (zero!(), ratio!(45_359_237i64, 1_600_000i64), Gram),
-            Pound => (zero!(), ratio!(45359237, 100_000), Gram),
-
-            // Electric capacitance
-            Farad => (zero!(), one!(), (Second * Second * Second * Second * Ampere * Ampere) / (Kilo * Gram * Meter * Meter)),
-
-            // Time
-            Second => (zero!(), one!(), Second),
-            Minute => (zero!(), ratio!(60, 1), Second),
-            Hour => (zero!(), ratio!(3600, 1), Second),
-            Day => (zero!(), ratio!(86400, 1), Second),
-            Month => (zero!(), ratio!(2629746, 1), Second),
-            Year => (zero!(), ratio!(31557600, 1), Second),
-
-            // SI modifiers
-            Quecto => (zero!(), ratio!(1, 1_000_000_000_000_000_000_000_000_000_000i128), UNITLESS),
-            Ronto => (zero!(), ratio!(1, 1_000_000_000_000_000_000_000_000_000i128), UNITLESS),
-            Yocto => (zero!(), ratio!(1, 1_000_000_000_000_000_000_000_000i128), UNITLESS),
-            Zepto => (zero!(), ratio!(1, 1_000_000_000_000_000_000_000i128), UNITLESS),
-            Atto => (zero!(), ratio!(1, 1_000_000_000_000_000_000i128), UNITLESS),
-            Femto => (zero!(), ratio!(1, 1_000_000_000_000_000i64), UNITLESS),
-            Pico => (zero!(), ratio!(1, 1_000_000_000_000i64), UNITLESS),
-            Nano => (zero!(), ratio!(1, 1_000_000_000), UNITLESS),
-            Micro => (zero!(), ratio!(1, 1_000_000), UNITLESS),
-            Milli => (zero!(), ratio!(1, 1_000), UNITLESS),
-            Centi => (zero!(), ratio!(1, 100), UNITLESS),
-            Deci => (zero!(), ratio!(1, 10), UNITLESS),
-            Hecto => (zero!(), ratio!(100, 1), UNITLESS),
-            Kilo => (zero!(), ratio!(1_000, 1), UNITLESS),
-            Mega => (zero!(), ratio!(1_000_000, 1), UNITLESS),
-            Giga => (zero!(), ratio!(1_000_000_000, 1), UNITLESS),
-            Tera => (zero!(), ratio!(1_000_000_000_000i64, 1), UNITLESS),
-            Peta => (zero!(), ratio!(1_000_000_000_000_000i64, 1), UNITLESS),
-            Exa => (zero!(), ratio!(1_000_000_000_000_000_000i128, 1), UNITLESS),
-            Zetta => (zero!(), ratio!(1_000_000_000_000_000_000_000i128, 1), UNITLESS),
-            Yotta => (zero!(), ratio!(1_000_000_000_000_000_000_000_000i128, 1), UNITLESS),
-            Ronna => (zero!(), ratio!(1_000_000_000_000_000_000_000_000_000i128, 1), UNITLESS),
-            Quetta => (zero!(), ratio!(1_000_000_000_000_000_000_000_000_000_000i128, 1), UNITLESS),
-
-            // IEC binary modifiers
-            Kibi => (zero!(), ratio!(1024, 1), UNITLESS),
-            Mebi => (zero!(), ratio!(1048576, 1), UNITLESS),
-            Gibi => (zero!(), ratio!(1073741824, 1), UNITLESS),
-            Tebi => (zero!(), ratio!(1099511627776i64, 1), UNITLESS),
-            Pebi => (zero!(), ratio!(1125899906842624i64, 1), UNITLESS),
-            Exbi => (zero!(), ratio!(1152921504606846976i64, 1), UNITLESS),
-
-            // Compound
-            Compound(numerator, denominator) => {
-                let mut offset = zero!();
-                let mut slope = one!();
-                let mut new_numerator = Vec::new();
-                let mut new_denominator = Vec::new();
-
-                for u in numerator {
-                    let (n_offset, n_slope, n_unit) = u.to_si_units();
-                    offset += n_offset;
-                    // Multiply by the new slope without reducing the fraction
-                    slope = BigRational::new_raw(slope.numer().clone() * n_slope.numer().clone(), slope.denom().clone() * n_slope.denom().clone());
-                    new_numerator.push(n_unit);
-                }
-
-                for u in denominator {
-                    let (n_offset, n_slope, n_unit) = u.to_si_units();
-                    offset += n_offset;
-                    // Divide by the new slope without reducing the fraction
-                    slope = BigRational::new_raw(slope.numer() * n_slope.denom(), slope.denom() * n_slope.numer());
-                    new_denominator.push(n_unit);
-                }
-
-                (offset, slope.reduced(), Compound(new_numerator, new_denominator).simplify())
-            }
-        }
-    }
-
-
     /// Flattens nested Compound units without canceling units.
     pub fn flatten(self) -> Self {
         use Unit::*;
@@ -382,194 +174,6 @@ impl Unit {
                 Compound(flat_numerator, flat_denominator)
             }
             u => u,
-        }
-    }
-
-    /// Returns the symbol for a unit. E.g "m" for Meter.
-    ///
-    /// This method respects the order in which units are added to a compound unit.
-    /// ```
-    /// # use tantalum_unit::c;
-    /// # use tantalum_unit::unit::Unit;
-    /// use tantalum_unit::unit::Unit::*;
-    ///
-    /// ((Volt * Ampere) / Second).symbol(); // Returns VA/s
-    /// ((Ampere * Volt) / Second).symbol(); // Returns AV/s
-    /// ```
-    pub fn symbol(&self) -> String {
-        use Unit::*;
-        match self {
-            // force
-            Newton => "N".to_owned(),
-
-            // energy
-            Joule => "J".to_owned(),
-
-            // electric_resistance
-            Ohm => "ohm".to_owned(),
-
-            // frequency
-            Hertz => "Hz".to_owned(),
-
-            // voltage
-            Volt => "V".to_owned(),
-
-            // temperature
-            Kelvin => "K".to_owned(),
-            Celsius => "C".to_owned(),
-            Fahrenheit => "F".to_owned(),
-
-            // area
-            Hectare => "ha".to_owned(),
-
-            // magnetic_field_strength
-            Tesla => "T".to_owned(),
-
-            // bits
-            Bit => "b".to_owned(),
-            Byte => "B".to_owned(),
-
-            // electric_conductance
-            Siemens => "S".to_owned(),
-
-            // power
-            Watt => "W".to_owned(),
-
-            // volume
-            Liter => "L".to_owned(),
-            CubicInch => "in^3".to_owned(),
-            CubicFeet => "ft^3".to_owned(),
-            CubicYard => "yd^3".to_owned(),
-            Pint => "pt".to_owned(),
-            Quart => "qt".to_owned(),
-            Gallon => "gal".to_owned(),
-
-            // pressure
-            Pascal => "Pa".to_owned(),
-
-            // inductance
-            Henry => "H".to_owned(),
-
-            // si_modifiers
-            Quecto => "q".to_owned(),
-            Ronto => "r".to_owned(),
-            Yocto => "y".to_owned(),
-            Zepto => "z".to_owned(),
-            Atto => "a".to_owned(),
-            Femto => "f".to_owned(),
-            Pico => "p".to_owned(),
-            Nano => "n".to_owned(),
-            Micro => "µ".to_owned(),
-            Milli => "m".to_owned(),
-            Centi => "c".to_owned(),
-            Deci => "d".to_owned(),
-            Hecto => "h".to_owned(),
-            Kilo => "k".to_owned(),
-            Mega => "M".to_owned(),
-            Giga => "G".to_owned(),
-            Tera => "T".to_owned(),
-            Peta => "P".to_owned(),
-            Exa => "E".to_owned(),
-            Zetta => "Z".to_owned(),
-            Yotta => "Y".to_owned(),
-            Ronna => "R".to_owned(),
-            Quetta => "Q".to_owned(),
-
-            // amount_of_substance
-            Mole => "mol".to_owned(),
-
-            // luminous_intensity
-            Candela => "cd".to_owned(),
-
-            // electric_current
-            Ampere => "A".to_owned(),
-
-            // magnetic_flux
-            Weber => "Wb".to_owned(),
-
-            // binary_modifiers
-            Kibi => "Ki".to_owned(),
-            Mebi => "Mi".to_owned(),
-            Gibi => "Gi".to_owned(),
-            Tebi => "Ti".to_owned(),
-            Pebi => "Pi".to_owned(),
-            Exbi => "Ei".to_owned(),
-
-            // length
-            Meter => "m".to_owned(),
-            AU => "ua".to_owned(),
-            Inch => "in".to_owned(),
-            Feet => "ft".to_owned(),
-            Yard => "yd".to_owned(),
-            Mile => "mi".to_owned(),
-            NauticalMile => "nmi".to_owned(),
-            LightYear => "ly".to_owned(),
-            Parsec => "pc".to_owned(),
-
-            // electric_charge
-            Coulomb => "C".to_owned(),
-
-            // mass
-            Gram => "g".to_owned(),
-            Tonne => "t".to_owned(),
-            Dram => "dr".to_owned(),
-            Ounce => "oz".to_owned(),
-            Pound => "lb".to_owned(),
-
-            // electric_capacitance
-            Farad => "F".to_owned(),
-
-            // time
-            Second => "s".to_owned(),
-            Minute => "min".to_owned(),
-            Hour => "h".to_owned(),
-            Day => "d".to_owned(),
-            Month => "mo".to_owned(),
-            Year => "yr".to_owned(),
-
-            // compound
-            Compound(n, d) => {
-                if n.is_empty() && d.is_empty() {
-                    "".to_owned()
-                } else {
-                    fn count_units(units: &[Unit]) -> IndexMap<String, usize> {
-                        let mut counts = IndexMap::new();
-                        for unit in units {
-                            let symbol = unit.symbol();
-                            *counts.entry(symbol).or_insert(0) += 1;
-                        }
-                        counts
-                    }
-
-                    fn format_units(counts: IndexMap<String, usize>) -> String {
-                        counts
-                            .into_iter()
-                            .map(|(symbol, count)| {
-                                if count > 1 {
-                                    format!("{}^{}", symbol, count)
-                                } else {
-                                    symbol
-                                }
-                            })
-                            .collect::<Vec<String>>()
-                            .join("")
-                    }
-
-                    let numerator_counts = count_units(n);
-                    let denominator_counts = count_units(d);
-
-                    let numerator = format_units(numerator_counts);
-                    let denominator = format_units(denominator_counts);
-
-                    if numerator.is_empty() {
-                        format!("1/{}", denominator)
-                    } else if denominator.is_empty() {
-                        numerator
-                    } else {
-                        format!("{}/{}", numerator, denominator)
-                    }
-                }
-            }
         }
     }
 
@@ -648,7 +252,6 @@ impl Unit {
             Exa => true,
             Zetta => true,
             Yotta => true,
-
             Kibi => true,
             Mebi => true,
             Gibi => true,
@@ -713,6 +316,7 @@ impl Display for Unit {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::c;
 
     #[test]
     fn flatten() {
@@ -770,10 +374,10 @@ mod tests {
 
     #[test]
     fn simplify_nested_compound() {
-        let result = c!(c!(Meter; Second); Second).simplify();
+        let result = c!(c ! (Meter; Second); Second).simplify();
         assert_eq!(result, c!(Meter; Second, Second));
 
-        let result = c!(c!(c!(Watt; Joule); Second); c!(Meter; Second)).simplify();
+        let result = c!(c ! (c ! (Watt; Joule); Second); c ! (Meter; Second)).simplify();
         assert_eq!(result, c!(Watt; Joule, Meter));
     }
 

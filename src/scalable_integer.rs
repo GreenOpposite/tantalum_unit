@@ -1,6 +1,8 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign};
-use num::{BigInt, CheckedAdd, Integer, Num, One, Zero};
+use num::{BigInt, FromPrimitive, Integer, Num, One, Zero};
+use num::bigint::ParseBigIntError;
+use num::integer::div_floor;
 use num::rational::Ratio;
 use crate::scalable_integer::ScalableInteger::{Big, Double, Single};
 
@@ -58,6 +60,14 @@ impl ScalableInteger {
                     Big(n)
                 }
             }
+        }
+    }
+
+    pub fn to_big_int(self) -> BigInt {
+        match self {
+            Single(n) => { BigInt::from_i64(n).unwrap() }
+            Double(n) => { BigInt::from_i128(n).unwrap() }
+            Big(n) => { n }
         }
     }
 }
@@ -300,25 +310,68 @@ impl Rem<Self> for ScalableInteger {
     type Output = Self;
 
     fn rem(self, rhs: Self) -> Self::Output {
-        todo!()
+        let (lhs, rhs) = ScalableInteger::max_size(self.clone(), rhs.clone());
+        match (lhs, rhs) {
+            (Single(a), Single(b)) => {
+                Single(a.rem(&b))
+            }
+            (Double(a), Double(b)) => {
+                Double(a.rem(&b))
+            }
+            (Big(a), Big(b)) => {
+                Big(a.rem(&b))
+            }
+            _ => unreachable!()
+        }
     }
 }
 
 impl Num for ScalableInteger {
-    type FromStrRadixErr = ();
+    type FromStrRadixErr = ParseBigIntError;
 
     fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
-        todo!()
+        if let Ok(parsed_int) = i64::from_str_radix(str, radix) {
+            Ok(Single(parsed_int))
+        } else if let Ok(parsed_int) = i128::from_str_radix(str, radix) {
+            Ok(Double(parsed_int))
+        } else {
+            let parsed_int = BigInt::from_str_radix(str, radix)?;
+            Ok(Big(parsed_int))
+        }
     }
 }
 
 impl Integer for ScalableInteger {
     fn div_floor(&self, other: &Self) -> Self {
-        todo!()
+        let (lhs, rhs) = ScalableInteger::max_size(self.clone(), other.clone());
+        match (lhs, rhs) {
+            (Single(a), Single(b)) => {
+                Single(div_floor(a, b))
+            }
+            (Double(a), Double(b)) => {
+                Double(div_floor(a, b))
+            }
+            (Big(a), Big(b)) => {
+                Big(a.div_floor(&b))
+            }
+            _ => unreachable!()
+        }
     }
 
     fn mod_floor(&self, other: &Self) -> Self {
-        todo!()
+        let (lhs, rhs) = ScalableInteger::max_size(self.clone(), other.clone());
+        match (lhs, rhs) {
+            (Single(a), Single(b)) => {
+                Single(a.mod_floor(&b))
+            }
+            (Double(a), Double(b)) => {
+                Double(a.mod_floor(&b))
+            }
+            (Big(a), Big(b)) => {
+                Big(a.mod_floor(&b))
+            }
+            _ => unreachable!()
+        }
     }
 
     fn gcd(&self, other: &Self) -> Self {
@@ -354,7 +407,19 @@ impl Integer for ScalableInteger {
     }
 
     fn is_multiple_of(&self, other: &Self) -> bool {
-        todo!()
+        let (lhs, rhs) = ScalableInteger::max_size(self.clone(), other.clone());
+        match (lhs, rhs) {
+            (Single(a), Single(b)) => {
+                a.is_multiple_of(&b)
+            }
+            (Double(a), Double(b)) => {
+                a.is_multiple_of(&b)
+            }
+            (Big(a), Big(b)) => {
+                a.is_multiple_of(&b)
+            }
+            _ => unreachable!()
+        }
     }
 
     fn is_even(&self) -> bool {
@@ -370,6 +435,21 @@ impl Integer for ScalableInteger {
     }
 
     fn div_rem(&self, other: &Self) -> (Self, Self) {
-        todo!()
+        let (lhs, rhs) = ScalableInteger::max_size(self.clone(), other.clone());
+        match (lhs, rhs) {
+            (Single(a), Single(b)) => {
+                let (div, rem) = a.div_rem(&b);
+                (Single(div), Single(rem))
+            }
+            (Double(a), Double(b)) => {
+                let (div, rem) = a.div_rem(&b);
+                (Double(div), Double(rem))
+            }
+            (Big(a), Big(b)) => {
+                let (div, rem) = a.div_rem(&b);
+                (Big(div), Big(rem))
+            }
+            _ => unreachable!()
+        }
     }
 }
